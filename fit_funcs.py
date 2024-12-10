@@ -10,7 +10,7 @@ from scipy.optimize import curve_fit
 import numpy.ma as ma
 import math
 
-def find_ridge(self, x, y, xrange = None, yrange = None, numxbins=40, numybins=40, fittype='max'):
+def find_ridge(x, y, xrange = None, yrange = None, numxbins=40, numybins=40, fittype='max', xlabel='', ylabel=''):
     """
     This function creates a ridge line fit by constructing a 2D histogram of the x and y data, 
     identifying the "ridge" of the data (the value of y where the most spaxels are in a given column of x), 
@@ -33,7 +33,7 @@ def find_ridge(self, x, y, xrange = None, yrange = None, numxbins=40, numybins=4
 
     if xrange is None: xrange=(min(x), max(x))
     if yrange is None: yrange=(min(y), max(y))
-    
+
     histfig,ax=plt.subplots()
 
     xbin=np.linspace(xrange[0], xrange[1], num = numxbins)
@@ -69,6 +69,11 @@ def find_ridge(self, x, y, xrange = None, yrange = None, numxbins=40, numybins=4
         fy[i]=(yedges[hmax]+yedges[hmax+1])/2.
     if fittype == 'Gauss': ridge = np.asarray([fx,fy,ferr])
     else: ridge = np.asarray([fx,fy])
+
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+
+    ax.scatter(fx, fy, marker='.', color='k')
     
     return(histfig,ridge)
 
@@ -111,3 +116,9 @@ def doubline(x,m1,b1,m2,x0):
     y[x>=x0] = m2*x[x>=x0]+b2
     return(y)
 
+
+def double_gaussian(x, params):
+    (amp1, m1, sigma1, amp2, m2, sigma2) = params
+    y =   amp1 * np.exp( - (x - m1)**2.0 / (2.0 * sigma1**2.0) ) \
+          + amp2 * np.exp( - (x - m2)**2.0 / (2.0 * sigma2**2.0) )
+    return y

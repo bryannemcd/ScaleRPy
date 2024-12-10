@@ -23,7 +23,7 @@ class SpatGalDat:
         Default assumes spaxel values are already in base-10 log space"""
 
         # ADD ERROR: check that at least two arrays are non-empty and the same length
-
+      
         #initialize variables, ensure any non-finite values are handled as NaNs
         self.s_mass = np.where(np.isfinite(s_mass),s_mass, np.nan*np.array(s_mass))
         self.sfr = np.where(np.isfinite(sfr), sfr, np.nan*np.array(sfr))
@@ -36,24 +36,31 @@ class SpatGalDat:
             self.g_mass = np.log10(self.g_mass, out = np.nan*self.g_mass, where = (self.g_mass>0))
         
         self.s_mass_unit = r'$M_\odot \mathrm{kpc}^{-2}$'
-        self.sfr_unit = r'$M_\odot \mathrm{yr}^{-1}$'
+        self.sfr_unit = r'$M_\odot \mathrm{yr}^{-1} \mathrm{kpc}^{-2}$'
         self.gas_unit = r'$M_{\mathrm{gas}} \mathrm{kpc}^{-2}$'
         #self.s_mass_label = r'log$_{10}$[$\Sigma_*$ / ($M_\odot$ kp$\mathrm{c}^{-2}$)]'
+        
     
 
     
     def SFMS_ridge(self, **kwarg):
         """Identify the 'ridge' of data for the star-forming main sequence
             Keyword arguments passed to find_ridge"""
-        self.SFMS_hist, self.SFMS_ridge = fit.find_ridge(self.s_mass, self.sfr, **kwarg)
+        xlab = 'log$_{10} (\Sigma_* / $ [%s])' % self.s_mass_unit
+        ylab = 'log$_{10} (\Sigma_{\mathrm{SFR}}/$ [%s])' % self.sfr_unit
+        self.SFMS_hist, self.SFMS_ridge = fit.find_ridge(self.s_mass, self.sfr, xlabel = xlab, ylabel=ylab, **kwarg)
         return(self.SFMS_hist,self.SFMS_ridge)
 
     def KS_ridge(self, **kwarg):
-        self.KS_hist, self.KS_ridge = fit.find_ridge(self.g_mass, self.sfr, **kwarg)
+        xlab = 'log$_{10} (\Sigma_{\mathrm{gas}} /$ [%s])' % self.gas_unit
+        ylab = 'log$_{10} (\Sigma_{\mathrm{SFR}}/$ [%s])' % self.sfr_unit
+        self.KS_hist, self.KS_ridge = fit.find_ridge(self.g_mass, self.sfr, xlabel=xlab, ylabel= ylab, **kwarg)
         return(self.KS_hist,self.KS_ridge)
     
     def MGMS_ridge(self,**kwarg):
-        self.MGMS_hist, self.MGMS_ridge = fit.find_ridge(self.s_mass, self.g_mass)
+        xlab = 'log$_{10} (\Sigma_* /$ [%s])' % self.s_mass_unit
+        ylab = 'log$_{10} (\Sigma_{\mathrm{gas}} /$ [%s])' % self.gas_unit
+        self.MGMS_hist, self.MGMS_ridge = fit.find_ridge(self.s_mass, self.g_mass, xlabel=xlab, ylabel=ylab, **kwarg)
         return(self.MGMS_hist, self.MGMS_ridge)
 
         """
