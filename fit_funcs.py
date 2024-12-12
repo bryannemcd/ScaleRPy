@@ -5,12 +5,12 @@ Created by Bryanne McDonough 12/5
 """
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.colors as colors
+from matplotlib import cm, colors
 from scipy.optimize import curve_fit
 import numpy.ma as ma
 import math
 
-def find_ridge(x, y, xrange = None, yrange = None, numxbins=40, numybins=40, fittype='max', xlabel='', ylabel=''):
+def find_ridge(x, y, xrange = None, yrange = None, numxbins=40, numybins=40, fittype='max', xlabel='', ylabel='',fontsize=12):
     """
     This function creates a ridge line fit by constructing a 2D histogram of the x and y data, 
     identifying the "ridge" of the data (the value of y where the most spaxels are in a given column of x), 
@@ -39,10 +39,15 @@ def find_ridge(x, y, xrange = None, yrange = None, numxbins=40, numybins=40, fit
     xbin=np.linspace(xrange[0], xrange[1], num = numxbins)
     ybin=np.linspace(yrange[0], yrange[1], num= numybins)
 
+    cmap=plt.cm.YlGnBu
+    norm = colors.LogNorm()
     #construct 2D histogram from data
     hist,xedges,yedges,image=ax.hist2d(x,y,bins=(xbin,ybin),
-        norm=colors.LogNorm(),cmin=1,cmap=plt.cm.RdYlBu) #cmin=1 to exclude any bins without spaxels
-
+        norm=norm,cmin=1,cmap=cmap) #cmin=1 to exclude any bins without spaxels
+    
+    cbar = histfig.colorbar(cm.ScalarMappable(norm=norm, cmap=cmap), ax=ax)
+    cbar.set_label(r'$\mathrm{N_{spaxels}}$', rotation=90,fontsize=fontsize)
+    
     #mask any points without data
     mask=np.isinf(hist)
     goodhist=ma.masked_array(hist, mask=mask)
@@ -70,12 +75,13 @@ def find_ridge(x, y, xrange = None, yrange = None, numxbins=40, numybins=40, fit
     if fittype == 'Gauss': ridge = np.asarray([fx,fy,ferr])
     else: ridge = np.asarray([fx,fy])
 
-    ax.set_xlabel(xlabel)
-    ax.set_ylabel(ylabel)
+    ax.set_xlabel(xlabel, fontsize=fontsize)
+    ax.set_ylabel(ylabel,fontsize=fontsize)
 
-    ax.scatter(fx, fy, marker='.', color='k')
+    ax.scatter(fx, fy, marker='.', color='m')
     
-    return(histfig,ridge)
+    
+    return(histfig, ax, ridge)
 
 def fit_double(ridge):
     if len(ridge[:,0])<3: fyerr = None
@@ -95,8 +101,8 @@ def fit_single(ridge):
     #set bounds such that x0 is within xrange
     fx = ridge[0,:]
     fy = ridge[1,:]
-    bounds = ((-1*np.inf, -1*np.inf, -1*np.inf, min(fx)), (np.inf, np.inf, np.inf, max(fx)))
-    popt, pcov = curve_fit(doubline, fx, fy, sigma=fyerr, nan_policy='omit', bounds=bounds)
+    bounds = ((-1*np.inf, -1*np.inf), (np.inf, np.inf))
+    popt, pcov = curve_fit(line, fx, fy, sigma=fyerr, nan_policy='omit', bounds=bounds)
     # obtain errors from the covariant matrix
     perr = np.sqrt(np.diag(pcov))
     return(popt,perr)

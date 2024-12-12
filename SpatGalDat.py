@@ -43,25 +43,51 @@ class SpatGalDat:
     
 
     
-    def SFMS_ridge(self, **kwarg):
+    def SFMS_ridge(self, linefit='double', **kwarg):
         """Identify the 'ridge' of data for the star-forming main sequence
             Keyword arguments passed to find_ridge"""
-        xlab = 'log$_{10} (\Sigma_* / $ [%s])' % self.s_mass_unit
-        ylab = 'log$_{10} (\Sigma_{\mathrm{SFR}}/$ [%s])' % self.sfr_unit
-        self.SFMS_hist, self.SFMS_ridge = fit.find_ridge(self.s_mass, self.sfr, xlabel = xlab, ylabel=ylab, **kwarg)
-        return(self.SFMS_hist,self.SFMS_ridge)
+        xlab = r'log$_{10} (\Sigma_* / $ [%s])' % self.s_mass_unit
+        ylab = r'log$_{10} (\Sigma_{\mathrm{SFR}}/$ [%s])' % self.sfr_unit
+        self.SFMS_hist, self.SFMS_fitax, self.SFMS_ridgept = fit.find_ridge(self.s_mass, self.sfr, xlabel = xlab, ylabel=ylab, **kwarg)
+        if linefit == 'double':
+            self.SFMS_params, self.SFMS_paramerr = fit.fit_double(self.SFMS_ridgept)
+            yfit = fit.doubline(self.SFMS_ridgept[0,:], *self.SFMS_params)
+            
+        elif linefit == 'single':
+            self.SFMS_params, self.SFMS_paramerr = fit.fit_single(self.SFMS_ridgept)
+            yfit = fit.line(self.SFMS_ridgept[0,:], *self.SFMS_params)
 
-    def KS_ridge(self, **kwarg):
-        xlab = 'log$_{10} (\Sigma_{\mathrm{gas}} /$ [%s])' % self.gas_unit
-        ylab = 'log$_{10} (\Sigma_{\mathrm{SFR}}/$ [%s])' % self.sfr_unit
-        self.KS_hist, self.KS_ridge = fit.find_ridge(self.g_mass, self.sfr, xlabel=xlab, ylabel= ylab, **kwarg)
-        return(self.KS_hist,self.KS_ridge)
+        self.SFMS_fitax.plot(self.SFMS_ridgept[0,:], yfit, color = 'yellow')
+        return(self.SFMS_hist, self.SFMS_params, self.SFMS_paramerr)
+
+    def KS_ridge(self,linefit = 'double', **kwarg):
+        xlab = r'log$_{10} (\Sigma_{\mathrm{gas}} /$ [%s])' % self.gas_unit
+        ylab = r'log$_{10} (\Sigma_{\mathrm{SFR}}/$ [%s])' % self.sfr_unit
+        self.KS_hist, self.KS_fitax, self.KS_ridgept = fit.find_ridge(self.g_mass, self.sfr, xlabel=xlab, ylabel= ylab, **kwarg)
+        if linefit=='double': 
+            self.KS_params, self.KS_paramerr = fit.fit_double(self.KS_ridgept)
+            yfit = fit.doubline(self.KS_ridgept[0,:],*self.KS_params)
+        elif linefit == 'single':
+            self.KS_params, self.KS_paramerr = fit.fit_single(self.KS_ridgept)
+            yfit = fit.line(self.KS_ridgept[0,:], *self.KS_params)
+        
+        self.KS_fitax.plot(self.KS_ridgept[0,:], yfit, color = 'yellow')
+        return(self.KS_hist, self.KS_params, self.KS_paramerr)
     
-    def MGMS_ridge(self,**kwarg):
-        xlab = 'log$_{10} (\Sigma_* /$ [%s])' % self.s_mass_unit
-        ylab = 'log$_{10} (\Sigma_{\mathrm{gas}} /$ [%s])' % self.gas_unit
-        self.MGMS_hist, self.MGMS_ridge = fit.find_ridge(self.s_mass, self.g_mass, xlabel=xlab, ylabel=ylab, **kwarg)
-        return(self.MGMS_hist, self.MGMS_ridge)
+    def MGMS_ridge(self,linefit = 'double', **kwarg):
+        xlab = r'log$_{10} (\Sigma_* /$ [%s])' % self.s_mass_unit
+        ylab = r'log$_{10} (\Sigma_{\mathrm{gas}} /$ [%s])' % self.gas_unit
+        self.MGMS_hist, self.MGMS_fitax, self.MGMS_ridgept = fit.find_ridge(self.s_mass, self.g_mass, xlabel=xlab, ylabel=ylab, **kwarg)
+        if linefit=='double': 
+            self.MGMS_params, self.MGMS_paramerr = fit.fit_double(self.MGMS_ridgept)
+            yfit=fit.doubline(self.MGMS_ridgept[0,:], *self.MGMS_params)
+        elif linefit == 'single':
+            self.mGMS_params, self.MGMS_paramerr = fit.fit_single(self.MGMS_ridgept)
+            yfit = fit.line(self.MGMS_ridgept[0,:], *self.MGMS_params)
+
+        self.MGMS_fitax.plot(self.MGMS_ridgept[0,:], yfit, color = 'yellow')
+                    
+        return(self.MGMS_hist, self.MGMS_params, self.MGMS_paramerr)
 
         """
         if fittype != 'Gauss': fyerr=None
