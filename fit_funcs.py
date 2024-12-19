@@ -9,6 +9,8 @@ from matplotlib import cm, colors
 from scipy.optimize import curve_fit
 import numpy.ma as ma
 import math
+from scipy.stats import gaussian_kde
+
 
 def find_ridge(x, y, xrange = None, yrange = None, numxbins=40, numybins=40, fittype='max', xlabel='', ylabel='',fontsize=12):
     """
@@ -22,10 +24,10 @@ def find_ridge(x, y, xrange = None, yrange = None, numxbins=40, numybins=40, fit
     yrange: the range in y that the scaling relation fit shoudl be performed over; should exclude outlying data
     numxbins: the number of bins the x data will be divided into. Smaller bins are recommended for smaller data samples
     numybins: the number of bins the y data will be divided into
-    fittype: the type of ridgeline fit to perform, the options are currently 'max' or 'Gauss'
-        max (default) - from a 2D histogram, the fit will be done to the max value of a given column
-        Gaussian - from a 2D histogram, a Gaussian will be fit to each column to obtain the max value with errors, 
-                    and then the scaling relationship fit will be done to those max values
+    fittype: the type of ridgeline fit to perform, the options are currently 'max' or 'kde' 
+        max (default)   : from a 2D histogram, the fit will be done to the max value of a given column
+
+        kde:    Modes and errors obtained from a kernel density estimate of spaxel SFRs within bins of mass
 
 
     Assumes spaxel sample has already been reasonably cleaned to remove spaxels with e.g., low mass surface density (<10^6 M_sun/kpc^2)
@@ -60,35 +62,46 @@ def find_ridge(x, y, xrange = None, yrange = None, numxbins=40, numybins=40, fit
     #find the (x,y) points where histogram is peaked (ridge points)
     for i in range(0,len(xedges)-1):
         col=goodhist[i,:]
+        fx[i]=(xedges[i]+xedges[i+1])/2.
         if i==0: print(col)
         #good=np.isfinite(col)
-        if fittype == 'max': hmax=np.nanargmax(col)
-        elif fittype == 'Gauss': 
-            ferr='abc'
-            print('code this in!')
-            return('Not supported')
+        if fittype == 'max': 
+            hmax=np.nanargmax(col)
+            fy[i]=(yedges[hmax]+yedges[hmax+1])/2.
+            fyerr=None
+        elif fittype == 'kde':
+            whx = np.nonzero((x>xedges[i]) & (x<=xedges[i+1])& (np.isfinite(y)))
+            fy[i], fyerr[i] = kde_mode(y[whx])
+            #normalize error by number of spaxels in the bin
+            #purpose is to avoid over-fitting to bins with few spaxels
+            fyerr[i] = fyerr[i]/len(whx[0])
         else:
             print(fittype + 'is not a recognized input for fittype, please check inputs and try again')
             return()
-        fx[i]=(xedges[i]+xedges[i+1])/2.
-        fy[i]=(yedges[hmax]+yedges[hmax+1])/2.
-    if fittype == 'Gauss': ridge = np.asarray([fx,fy,ferr])
-    else: ridge = np.asarray([fx,fy])
+        
+        
+    ridge = np.asarray([fx,fy,fyerr])
+
 
     ax.set_xlabel(xlabel, fontsize=fontsize)
     ax.set_ylabel(ylabel,fontsize=fontsize)
 
-    ax.scatter(fx, fy, marker='.', color='m')
+    ax.errorbar(fx, fy, yerr=fyerr, marker='.', color='m')
     
     
-    return(histfig, ax, ridge)
+    return(histfig, ax, ridge, hist, xedges, yedges)
 
 def fit_double(ridge):
-    if len(ridge[:,0])<3: fyerr = None
-    else: fyerr = ridge[2,:]
-    #set bounds such that x0 is within xrange
+    """ 
+    Fit a double linear to the ridge points
+
+    Parameters
+    ridge: a 3xN array containing the x and y values of the ridge points and the error in y
+    """
     fx = ridge[0,:]
     fy = ridge[1,:]
+    fyerr = ridge[2,:]
+    #set bounds such that x0 is within xrange
     bounds = ((-1*np.inf, -1*np.inf, -1*np.inf, min(fx)), (np.inf, np.inf, np.inf, max(fx)))
     popt, pcov = curve_fit(doubline, fx, fy, sigma=fyerr, nan_policy='omit', bounds=bounds)
     # obtain errors from the covariant matrix
@@ -107,11 +120,35 @@ def fit_single(ridge):
     perr = np.sqrt(np.diag(pcov))
     return(popt,perr)
 
-#add a double gauss??
+def kde_mode(data, bandwidth = 0.1):
+    """
+    Estimate the error on the mode using KDE.
+    Written by Copilot
 
+    Parameters:
+    data (array-like): Input data.
+    bandwidth (float): Bandwidth for KDE.
+
+    Returns:
+    float: Estimated error on the mode.
+    """
+    kde = gaussian_kde(data, bw_method=bandwidth)
+    x = np.linspace(min(data), max(data), 1000)
+    kde_values = kde(x)
+    mode = x[np.argmax(kde_values)]
+    
+    # Estimate the width of the peak at half maximum
+    half_max = np.max(kde_values) / 2
+    peak_indices = np.where(kde_values >= half_max)[0]
+    peak_width = x[peak_indices[-1]] - x[peak_indices[0]]
+    
+    return(mode, peak_width / 2)
+
+#add a double gauss??
+"""
 def gauss(x, mean, std): #retain for fitting columns with Gaussian to obtain max with errors
     return(0.3989/std * math.e**(-.5*((x-mean)/std)**2)) #constant is 1/sqrt(2pi)
-
+"""
 def line(x,m,b):
     return(m*x+b)
 
@@ -122,9 +159,10 @@ def doubline(x,m1,b1,m2,x0):
     y[x>=x0] = m2*x[x>=x0]+b2
     return(y)
 
-
+"""
 def double_gaussian(x, params):
     (amp1, m1, sigma1, amp2, m2, sigma2) = params
     y =   amp1 * np.exp( - (x - m1)**2.0 / (2.0 * sigma1**2.0) ) \
           + amp2 * np.exp( - (x - m2)**2.0 / (2.0 * sigma2**2.0) )
     return y
+"""

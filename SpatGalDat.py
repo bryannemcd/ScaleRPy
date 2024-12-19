@@ -5,7 +5,7 @@ import fit_funcs as fit
 """
 Functions to add:
     rem_low : remove low s_mass from the sample
-    wrappers for ridge fit 
+
     
 """
 
@@ -17,7 +17,7 @@ class SpatGalDat:
 
     """
 
-    def __init__(self, s_mass, sfr, gas, scale='log'):
+    def __init__(self, s_mass=[], sfr=[], gas=[], scale='log'):
         """Instance variables should be arrays or lists. 
         At least two variables should be defined as non-empty arrays.
         Default assumes spaxel values are already in base-10 log space"""
@@ -48,7 +48,9 @@ class SpatGalDat:
             Keyword arguments passed to find_ridge"""
         xlab = r'log$_{10} (\Sigma_* / $ [%s])' % self.s_mass_unit
         ylab = r'log$_{10} (\Sigma_{\mathrm{SFR}}/$ [%s])' % self.sfr_unit
-        self.SFMS_hist, self.SFMS_fitax, self.SFMS_ridgept = fit.find_ridge(self.s_mass, self.sfr, xlabel = xlab, ylabel=ylab, **kwarg)
+        self.SFMS_hist, self.SFMS_fitax, self.SFMS_ridgept, self.SFMS_histval, \
+              self.SFMS_xedges, self.SFMS_yedges = fit.find_ridge(
+                  self.s_mass, self.sfr, xlabel = xlab, ylabel=ylab, **kwarg)
         if linefit == 'double':
             self.SFMS_params, self.SFMS_paramerr = fit.fit_double(self.SFMS_ridgept)
             yfit = fit.doubline(self.SFMS_ridgept[0,:], *self.SFMS_params)
@@ -63,7 +65,7 @@ class SpatGalDat:
     def KS_ridge(self,linefit = 'double', **kwarg):
         xlab = r'log$_{10} (\Sigma_{\mathrm{gas}} /$ [%s])' % self.gas_unit
         ylab = r'log$_{10} (\Sigma_{\mathrm{SFR}}/$ [%s])' % self.sfr_unit
-        self.KS_hist, self.KS_fitax, self.KS_ridgept = fit.find_ridge(self.g_mass, self.sfr, xlabel=xlab, ylabel= ylab, **kwarg)
+        self.KS_hist, self.KS_fitax, self.KS_ridgept , self.KS_histvals= fit.find_ridge(self.g_mass, self.sfr, xlabel=xlab, ylabel= ylab, **kwarg)
         if linefit=='double': 
             self.KS_params, self.KS_paramerr = fit.fit_double(self.KS_ridgept)
             yfit = fit.doubline(self.KS_ridgept[0,:],*self.KS_params)
@@ -77,7 +79,7 @@ class SpatGalDat:
     def MGMS_ridge(self,linefit = 'double', **kwarg):
         xlab = r'log$_{10} (\Sigma_* /$ [%s])' % self.s_mass_unit
         ylab = r'log$_{10} (\Sigma_{\mathrm{gas}} /$ [%s])' % self.gas_unit
-        self.MGMS_hist, self.MGMS_fitax, self.MGMS_ridgept = fit.find_ridge(self.s_mass, self.g_mass, xlabel=xlab, ylabel=ylab, **kwarg)
+        self.MGMS_hist, self.MGMS_fitax, self.MGMS_ridgept, self.MGMS_histvals = fit.find_ridge(self.s_mass, self.g_mass, xlabel=xlab, ylabel=ylab, **kwarg)
         if linefit=='double': 
             self.MGMS_params, self.MGMS_paramerr = fit.fit_double(self.MGMS_ridgept)
             yfit=fit.doubline(self.MGMS_ridgept[0,:], *self.MGMS_params)
@@ -116,15 +118,4 @@ class SpatGalDat:
 
 #add a double gauss??
 
-def gauss(x, mean, std): #retain for fitting columns with Gaussian to obtain max with errors
-    return(0.3989/std * math.e**(-.5*((x-mean)/std)**2)) #constant is 1/sqrt(2pi)
 
-def line(x,m,b):
-    return(m*x+b)
-
-def doubline(x,m1,b1,m2,x0):
-    b2 = m1*x0 + b1 - m2*x0
-    y = np.zeros_like(x)
-    y[x<x0] = m1*x[x<x0]+b1
-    y[x>=x0] = m2*x[x>=x0]+b2
-    return(y)
