@@ -12,7 +12,7 @@ import math
 from scipy.stats import gaussian_kde
 
 
-def find_ridge(x, y, xrange = None, yrange = None, numxbins=40, numybins=40, fittype='max', xlabel='', ylabel='',fontsize=12):
+def find_ridge(x, y, xrange = None, yrange = None, numxbins=40, numybins=40, fittype='kde', xlabel='', ylabel='',fontsize=12):
     """
     This function creates a ridge line fit by constructing a 2D histogram of the x and y data, 
     identifying the "ridge" of the data (the value of y where the most spaxels are in a given column of x), 
@@ -86,7 +86,7 @@ def find_ridge(x, y, xrange = None, yrange = None, numxbins=40, numybins=40, fit
     ax.set_xlabel(xlabel, fontsize=fontsize)
     ax.set_ylabel(ylabel,fontsize=fontsize)
 
-    ax.errorbar(fx, fy, yerr=fyerr, marker='.', color='m')
+    ax.errorbar(fx, fy, yerr=fyerr, fmt='.', color='m')
     
     
     return(histfig, ax, ridge, hist, xedges, yedges)
