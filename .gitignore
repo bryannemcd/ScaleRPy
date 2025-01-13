@@ -4,3 +4,4 @@ __init__.py
 Ridge comparison.ipynb
 tol_colors.py
 scalerfit.ipynb
+global_scale.ipynb

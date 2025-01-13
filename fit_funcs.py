@@ -12,7 +12,7 @@ import math
 from scipy.stats import gaussian_kde
 
 
-def find_ridge(x, y, xrange = None, yrange = None, numxbins=40, numybins=40, fittype='kde', xlabel='', ylabel='',fontsize=12):
+def find_ridge(x, y, xrange = None, yrange = None, numxbins=40, numybins=40, fittype='kde', xlabel='', ylabel='',fontsize=12, kde_bwmode='scott'):
     """
     This function creates a ridge line fit by constructing a 2D histogram of the x and y data, 
     identifying the "ridge" of the data (the value of y where the most spaxels are in a given column of x), 
@@ -45,10 +45,10 @@ def find_ridge(x, y, xrange = None, yrange = None, numxbins=40, numybins=40, fit
     norm = colors.LogNorm()
     #construct 2D histogram from data
     hist,xedges,yedges,image=ax.hist2d(x,y,bins=(xbin,ybin),
-        norm=norm,cmin=1,cmap=cmap) #cmin=1 to exclude any bins without spaxels
+        norm=norm,cmin=1,cmap=cmap) #cmin=1 to exclude any bins with no data
     
     cbar = histfig.colorbar(cm.ScalarMappable(norm=norm, cmap=cmap), ax=ax)
-    cbar.set_label(r'$\mathrm{N_{spaxels}}$', rotation=90,fontsize=fontsize)
+    cbar.set_label(r'$\mathrm{N}$', rotation=90,fontsize=fontsize)
     
     #mask any points without data
     mask=np.isinf(hist)
@@ -63,7 +63,6 @@ def find_ridge(x, y, xrange = None, yrange = None, numxbins=40, numybins=40, fit
     for i in range(0,len(xedges)-1):
         col=goodhist[i,:]
         fx[i]=(xedges[i]+xedges[i+1])/2.
-        if i==0: print(col)
         #good=np.isfinite(col)
         if fittype == 'max': 
             hmax=np.nanargmax(col)
@@ -71,7 +70,12 @@ def find_ridge(x, y, xrange = None, yrange = None, numxbins=40, numybins=40, fit
             fyerr=None
         elif fittype == 'kde':
             whx = np.nonzero((x>xedges[i]) & (x<=xedges[i+1])& (np.isfinite(y)))
-            fy[i], fyerr[i] = kde_mode(y[whx])
+            #require at least 5 points to fit KDE
+            if len(whx[0]) < 5:
+                fy[i] = np.nan
+                fyerr[i] = np.nan 
+                continue
+            fy[i], fyerr[i] = kde_mode(y[whx], bandwidth = kde_bwmode)
             #normalize error by number of spaxels in the bin
             #purpose is to avoid over-fitting to bins with few spaxels
             fyerr[i] = fyerr[i]/len(whx[0])
@@ -89,7 +93,7 @@ def find_ridge(x, y, xrange = None, yrange = None, numxbins=40, numybins=40, fit
     ax.errorbar(fx, fy, yerr=fyerr, fmt='.', color='m')
     
     
-    return(histfig, ax, ridge, hist, xedges, yedges)
+    return((histfig, ax), ridge, hist, xedges, yedges)
 
 def fit_double(ridge):
     """ 
@@ -109,11 +113,10 @@ def fit_double(ridge):
     return(popt,perr)
 
 def fit_single(ridge):
-    if len(ridge[:,0])<3: fyerr = None
-    else: fyerr = ridge[2,:]
     #set bounds such that x0 is within xrange
     fx = ridge[0,:]
     fy = ridge[1,:]
+    fyerr = ridge[2,:]
     bounds = ((-1*np.inf, -1*np.inf), (np.inf, np.inf))
     popt, pcov = curve_fit(line, fx, fy, sigma=fyerr, nan_policy='omit', bounds=bounds)
     # obtain errors from the covariant matrix
@@ -166,3 +169,4 @@ def double_gaussian(x, params):
           + amp2 * np.exp( - (x - m2)**2.0 / (2.0 * sigma2**2.0) )
     return y
 """
+
