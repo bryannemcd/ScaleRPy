@@ -12,7 +12,7 @@ import math
 from scipy.stats import gaussian_kde
 
 
-def find_ridge(x, y, xrange = None, yrange = None, numxbins=40, numybins=40, fittype='kde', xlabel='', ylabel='',fontsize=12, kde_bwmode='scott'):
+def find_ridge(x, y, xrange = None, yrange = None, numxbins=40, numybins=40, fittype='kde', xlabel='', ylabel='',fontsize=12, kde_bwmode='scott', kde_error='bw_approx'):
     """
     This function creates a ridge line fit by constructing a 2D histogram of the x and y data, 
     identifying the "ridge" of the data (the value of y where the most spaxels are in a given column of x), 
@@ -28,7 +28,11 @@ def find_ridge(x, y, xrange = None, yrange = None, numxbins=40, numybins=40, fit
         max (default)   : from a 2D histogram, the fit will be done to the max value of a given column
 
         kde:    Modes and errors obtained from a kernel density estimate of spaxel SFRs within bins of mass
-
+    xlabel (str) : the label for the x-axis of the plot
+    ylabel (str) : the label for the y-axis of the plot
+    fontsize (int) : the fontsize for the labels
+    kde_bwmode (str) : the bandwidth method for the KDE, see scipy.stats.gaussian_kde for options
+    kde_error (str) : the method for estimating the error on the mode from the KDE, options are 'bw_approx' and 'half_max'
 
     Assumes spaxel sample has already been reasonably cleaned to remove spaxels with e.g., low mass surface density (<10^6 M_sun/kpc^2)
     """
@@ -75,10 +79,8 @@ def find_ridge(x, y, xrange = None, yrange = None, numxbins=40, numybins=40, fit
                 fy[i] = np.nan
                 fyerr[i] = np.nan 
                 continue
-            fy[i], fyerr[i] = kde_mode(y[whx], bandwidth = kde_bwmode)
-            #normalize error by number of spaxels in the bin
-            #purpose is to avoid over-fitting to bins with few spaxels
-            fyerr[i] = fyerr[i]/len(whx[0])
+            fy[i], fyerr[i] = kde_mode(y[whx], bandwidth = kde_bwmode, error_mode = kde_error)
+            
         else:
             print(fittype + 'is not a recognized input for fittype, please check inputs and try again')
             return()
@@ -123,14 +125,18 @@ def fit_single(ridge):
     perr = np.sqrt(np.diag(pcov))
     return(popt,perr)
 
-def kde_mode(data, bandwidth = 0.1):
+def kde_mode(data, bandwidth = 'scott', error_mode ='bw_approx'):
     """
     Estimate the error on the mode using KDE.
     Written by Copilot
 
     Parameters:
     data (array-like): Input data.
-    bandwidth (float): Bandwidth for KDE.
+    bandwidth (str or float): Bandwidth for KDE. Maps to bw_method in gaussian_kde.
+    error_mode(str): Method for estimating the error on the mode. Options are 'bw_approx' and 'half_max'.
+                    'bw_approx' uses the bandwidth as an approximation of the error
+                    'half_max' uses the width of the peak at half maximum as the error. (Not recommended)
+                    'bootstrap' uses bootstrapping to estimate the error on the mode using 1000 bootstrap resamplings. (Will take significantly longer)
 
     Returns:
     float: Estimated error on the mode.
@@ -145,7 +151,35 @@ def kde_mode(data, bandwidth = 0.1):
     peak_indices = np.where(kde_values >= half_max)[0]
     peak_width = x[peak_indices[-1]] - x[peak_indices[0]]
     
-    return(mode, peak_width / 2)
+    bw_approxerror = kde.factor * np.std(data)
+    if error_mode == 'bw_approx':
+        return(mode, bw_approxerror)
+    elif error_mode == 'half_max':
+        return(mode, peak_width / 2)
+    elif error_mode == 'bootstrap':
+        return(mode, bootstrap_mode_error(data))
+    
+def bootstrap_mode_error(data, num_samples=1000):
+    """
+    Estimate the error on the mode using bootstrapping.
+    Will take a long time!
+
+    Parameters:
+    data (array-like): Input data.
+    num_samples (int): Number of bootstrap samples.
+
+    Returns:
+    float: Standard error of the mode.
+    """
+    modes = []
+    for _ in range(num_samples):
+        sample = np.random.choice(data, size=len(data), replace=True)
+        kde = gaussian_kde(sample)
+        x = np.linspace(min(sample), max(sample), 1000)
+        kde_values = kde(x)
+        mode = x[np.argmax(kde_values)]
+        modes.append(mode)
+    return np.std(modes)
 
 #add a double gauss??
 """

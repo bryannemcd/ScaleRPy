@@ -59,7 +59,6 @@ class GalaxyScaling:
         y = self.parameters[param2]
         hist, ridgept, histvals, xedges, yedges = fit.find_ridge(x, y, xlabel=xlab, ylabel=ylab, **kwarg)
         fitax = hist[1]
-        print(ridgept)
         if linefit=='double':
             params, paramerr = fit.fit_double(ridgept)
             yfit = fit.doubline(ridgept[0,:], *params)

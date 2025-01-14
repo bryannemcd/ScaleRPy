@@ -2,6 +2,5 @@ spat_res_fit.py
 fit_run.py
 __init__.py
 Ridge comparison.ipynb
-tol_colors.py
-scalerfit.ipynb
 global_scale.ipynb
+
