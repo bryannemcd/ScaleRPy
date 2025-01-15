@@ -1,11 +1,14 @@
 """
 Contains SpatGalDat and GalDat classes
+
+Copyright 2025 Bryanne McDonough
+Apache License, Version 2.0
 """
 
 import numpy as np
 import matplotlib.pyplot as plt
 import math
-import fit_funcs as fit
+import src.ScaleRPy.fitting.fit_funcs as fit
 """
 Functions to add:
     rem_low : remove low s_mass from the sample
@@ -13,7 +16,7 @@ Functions to add:
     
 """
 
-class GalaxyScaling:
+class GalDat:
     """
     Class for handling pre-processed global (i.e., integrated) galaxy parameters
     Measure the slopes of global scaling relationships

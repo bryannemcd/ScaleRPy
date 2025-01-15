@@ -1,6 +1,7 @@
 spat_res_fit.py
 fit_run.py
-__init__.py
 Ridge comparison.ipynb
 global_scale.ipynb
+__pycache__/
+.venv
 

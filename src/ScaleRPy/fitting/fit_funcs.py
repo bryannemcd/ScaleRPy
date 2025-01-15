@@ -1,7 +1,9 @@
 """
 Contains ridge-finding and fitting functions for SpatGalDat objects
 
-Created by Bryanne McDonough 12/5
+Copyright 2025 Bryanne McDonough
+Apache License, Version 2.0
+
 """
 import numpy as np
 import matplotlib.pyplot as plt
