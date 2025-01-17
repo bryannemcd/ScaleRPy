@@ -27,9 +27,9 @@ def find_ridge(x, y, xrange = None, yrange = None, numxbins=40, numybins=40, fit
     numxbins: the number of bins the x data will be divided into. Smaller bins are recommended for smaller data samples
     numybins: the number of bins the y data will be divided into
     fittype: the type of ridgeline fit to perform, the options are currently 'max' or 'kde' 
-        max (default)   : from a 2D histogram, the fit will be done to the max value of a given column
+        max    : from a 2D histogram, the fit will be done to the max value of a given column
 
-        kde:    Modes and errors obtained from a kernel density estimate of spaxel SFRs within bins of mass
+        kde (default):    Modes and errors obtained from a kernel density estimate of spaxel SFRs within bins of mass
     xlabel (str) : the label for the x-axis of the plot
     ylabel (str) : the label for the y-axis of the plot
     fontsize (int) : the fontsize for the labels

@@ -26,4 +26,3 @@ dynamic = ["version"]
 repository = "https://github.com/bryannemcd/ScaleRPy"
 
 [tool.setuptools.dynamic]
-version = {attr = "ScaleRPy.__version__"}
