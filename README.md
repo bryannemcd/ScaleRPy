@@ -7,6 +7,8 @@ This software is compatable with observed and simulated data, facilitating stron
 This project and README file are in development.
 
 ## Table of Contents
+
+
 - [ScaleRPy](#scalerpy)
   - [Table of Contents](#table-of-contents)
   - [Introduction and Scientific Motivation](#introduction-and-scientific-motivation)
