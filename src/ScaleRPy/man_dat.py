@@ -8,7 +8,8 @@ Apache License, Version 2.0
 import numpy as np
 import matplotlib.pyplot as plt
 import math
-import src.ScaleRPy.fitting.fit_funcs as fit
+import fitting.fit_funcs as fit
+import formatting.density_contours as dc
 """
 Functions to add:
     rem_low : remove low s_mass from the sample
@@ -148,10 +149,12 @@ class SpatGalDat:
             yfit = fit.line(ridgept[0, :], *fit_params)
 
         fitax = hist[1]
-        fitax.plot(ridgept[0, :], yfit, color='yellow')
+        print('contouring')
+        dc.density_contour(self.parameters[xparam], self.parameters[yparam], fitax, zorder=2)
+        fitax.plot(ridgept[0, :], yfit, color='yellow',zorder=4)
         
         if returnall:
-            return hist, ridgept, histval, xedges, yedges, fit_params, fit_paramerr, fitax
+            return hist, ridgept, histval, xedges, yedges, fit_params, fit_paramerr
         else:
             return hist, fit_params, fit_paramerr
 
@@ -163,7 +166,7 @@ class SpatGalDat:
         result = self.ridge('stellar_mass', 'sfr', xlabel=xlab, ylabel=ylab, linefit=linefit, returnall=True, **kwarg)
         self.SFMS_hist, self.SFMS_ridgept, self.SFMS_histval, \
             self.SFMS_xedges, self.SFMS_yedges, self.SFMS_params, \
-            self.SFMS_paramerr, self.SFMS_fitax = result
+            self.SFMS_paramerr= result
         return self.SFMS_hist, self.SFMS_params, self.SFMS_paramerr
 
     def KS_ridge(self, linefit='double', **kwarg):
@@ -172,7 +175,7 @@ class SpatGalDat:
         result = self.ridge('gas_mass', 'sfr', xlabel=xlab, ylabel=ylab, linefit=linefit, returnall=True, **kwarg)
         self.KS_hist, self.KS_ridgept, self.KS_histvals, \
             self.KS_xedges, self.KS_yedges, self.KS_params, \
-            self.KS_paramerr, self.KS_fitax = result
+            self.KS_paramerr = result
         return self.KS_hist, self.KS_params, self.KS_paramerr
 
     def MGMS_ridge(self, linefit='double', **kwarg):
@@ -181,39 +184,9 @@ class SpatGalDat:
         result = self.ridge('stellar_mass', 'gas_mass', xlabel=xlab, ylabel=ylab, linefit=linefit, returnall=True, **kwarg)
         self.MGMS_hist, self.MGMS_ridgept, self.MGMS_histvals, \
             self.MGMS_xedges, self.MGMS_yedges, self.MGMS_params, \
-            self.MGMS_paramerr, self.MGMS_fitax = result
+            self.MGMS_paramerr= result
         return self.MGMS_hist, self.MGMS_params, self.MGMS_paramerr
 
-    def KS_ridge(self,linefit = 'double', **kwarg):
-        xlab = r'log$_{10} (\Sigma_{\mathrm{gas}} /$ [%s])' % self.gas_unit
-        ylab = r'log$_{10} (\Sigma_{\mathrm{SFR}}/$ [%s])' % self.sfr_unit
-        self.KS_hist, self.KS_ridgept , self.KS_histvals= fit.find_ridge(self.g_mass, self.sfr, xlabel=xlab, ylabel= ylab, **kwarg)
-        self.KS_fitax = self.KS_hist[1]
-        if linefit=='double': 
-            self.KS_params, self.KS_paramerr = fit.fit_double(self.KS_ridgept)
-            yfit = fit.doubline(self.KS_ridgept[0,:],*self.KS_params)
-        elif linefit == 'single':
-            self.KS_params, self.KS_paramerr = fit.fit_single(self.KS_ridgept)
-            yfit = fit.line(self.KS_ridgept[0,:], *self.KS_params)
-        
-        self.KS_fitax.plot(self.KS_ridgept[0,:], yfit, color = 'yellow')
-        return(self.KS_hist, self.KS_params, self.KS_paramerr)
-    
-    def MGMS_ridge(self,linefit = 'double', **kwarg):
-        xlab = r'log$_{10} (\Sigma_* /$ [%s])' % self.s_mass_unit
-        ylab = r'log$_{10} (\Sigma_{\mathrm{gas}} /$ [%s])' % self.gas_unit
-        self.MGMS_hist, self.MGMS_ridgept, self.MGMS_histvals = fit.find_ridge(self.s_mass, self.g_mass, xlabel=xlab, ylabel=ylab, **kwarg)
-        self.MGMS_fitax = self.MGMS_hist[1]
-        if linefit=='double': 
-            self.MGMS_params, self.MGMS_paramerr = fit.fit_double(self.MGMS_ridgept)
-            yfit=fit.doubline(self.MGMS_ridgept[0,:], *self.MGMS_params)
-        elif linefit == 'single':
-            self.mGMS_params, self.MGMS_paramerr = fit.fit_single(self.MGMS_ridgept)
-            yfit = fit.line(self.MGMS_ridgept[0,:], *self.MGMS_params)
-
-        self.MGMS_fitax.plot(self.MGMS_ridgept[0,:], yfit, color = 'yellow')
-                    
-        return(self.MGMS_hist, self.MGMS_params, self.MGMS_paramerr)
 
         """
         if fittype != 'Gauss': fyerr=None

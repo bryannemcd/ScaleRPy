@@ -51,7 +51,7 @@ def find_ridge(x, y, xrange = None, yrange = None, numxbins=40, numybins=40, fit
     norm = colors.LogNorm()
     #construct 2D histogram from data
     hist,xedges,yedges,image=ax.hist2d(x,y,bins=(xbin,ybin),
-        norm=norm,cmin=1,cmap=cmap) #cmin=1 to exclude any bins with no data
+        norm=norm,cmin=1,cmap=cmap, zorder=1) #cmin=1 to exclude any bins with no data
     
     cbar = histfig.colorbar(cm.ScalarMappable(norm=norm, cmap=cmap), ax=ax)
     cbar.set_label(r'$\mathrm{N}$', rotation=90,fontsize=fontsize)
@@ -94,7 +94,7 @@ def find_ridge(x, y, xrange = None, yrange = None, numxbins=40, numybins=40, fit
     ax.set_xlabel(xlabel, fontsize=fontsize)
     ax.set_ylabel(ylabel,fontsize=fontsize)
 
-    ax.errorbar(fx, fy, yerr=fyerr, fmt='.', color='m')
+    ax.errorbar(fx, fy, yerr=fyerr, fmt='.', color='m', zorder=3)
     
     
     return((histfig, ax), ridge, hist, xedges, yedges)
