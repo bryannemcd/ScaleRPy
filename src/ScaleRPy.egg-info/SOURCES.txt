@@ -9,4 +9,5 @@ src/ScaleRPy.egg-info/dependency_links.txt
 src/ScaleRPy.egg-info/requires.txt
 src/ScaleRPy.egg-info/top_level.txt
 src/ScaleRPy/fitting/fit_funcs.py
+src/ScaleRPy/formatting/density_contours.py
 src/ScaleRPy/formatting/tol_colors.py
