@@ -26,7 +26,7 @@ class GalDat:
         self.parameters = {}
         self.labels = {}
 
-    def add_parameter(self, name, values, label):
+    def add_param(self, name, values, label):
         """Add a parameter to the galaxy data
         name: string, the name of the parameter
         values: array, the values of the parameter
@@ -35,11 +35,20 @@ class GalDat:
         self.parameters[name] = values
         self.labels[name] = label
 
-    def add_parameters(self, params_dict):
+    def add_parameter(self, name, values, label):
+        """Redundent, use add_param
+        """
+        self.add_param(name, values, label)
+
+    def add_params(self, params_dict):
         """Add multiple parameters to the galaxy data
         params_dict: dictionary, keys are the parameter names, values are tuples of the form (values, label)"""
         for name, (values, label) in params_dict.items():
-            self.add_parameter(name, values, label)
+            self.add_param(name, values, label)
+
+    def add_parameters(self, params_dict):
+        """Redundent, use add_params"""
+        self.add_params(params_dict)
 
     def get_parameters(self):
         """Return a list of the parameter names"""
@@ -101,10 +110,47 @@ class SpatGalDat:
         self.s_mass_unit = r'$M_\odot \mathrm{kpc}^{-2}$'
         self.sfr_unit = r'$M_\odot \mathrm{yr}^{-1} \mathrm{kpc}^{-2}$'
         self.gas_unit = r'$M_{\mathrm{gas}} \mathrm{kpc}^{-2}$'
-        #self.s_mass_label = r'log$_{10}$[$\Sigma_*$ / ($M_\odot$ kp$\mathrm{c}^{-2}$)]'
         
-    
+        #for generalization
+        self.parameters = {'stellar_mass': self.s_mass, 'sfr': self.sfr, 'gas_mass': self.g_mass}
+        self.labels = {'stellar_mass': self.s_mass_unit, 'sfr': self.sfr_unit, 'gas_mass': self.gas_unit}
+        
+    def add_param(self, name, values, label):
+        """Add a parameter to the galaxy data
+        name: string, the name of the parameter
+        values: array, the values of the parameter
+        label: string, the label for the parameter, for plot labels
+        """
+        self.parameters[name] = values
+        self.labels[name] = label
 
+    def add_params(self, params_dict):
+        """Add multiple parameters to the galaxy data
+        params_dict: dictionary, keys are the parameter names, values are tuples of the form (values, label)"""
+        for name, (values, label) in params_dict.items():
+            self.add_param(name, values, label)
+    
+    def get_params(self):
+        """Return a list of the parameter names"""
+        return list(self.parameters.keys())
+    
+    def ridge(self,xparam, yparam, xlabel = '', ylabel='', linefit='double', **kwarg):
+        """Identify the 'ridge' of data for any two spatially-resolved parameters
+            Keyword arguments passed to find_ridge"""
+        self.hist, self.ridgept, self.histval, \
+                self.xedges, self.yedges = fit.find_ridge(
+                    self.parameters[xparam], self.parameters[yparam], xlabel = xlabel, ylabel=ylabel, **kwarg)
+        
+        if linefit == 'double':
+            self.fit_params, self.fit_paramerr = fit.fit_double(self.ridgept)
+            yfit = fit.doubline(self.ridgept[0,:], *self.fit_params)
+        elif linefit == 'single':
+            self.fit_params, self.fit_paramerr = fit.fit_single(self.ridgept)
+            yfit = fit.line(self.ridgept[0,:], *self.fit_params)
+
+        self.fitax.plot(self.ridgept[0,:], yfit, color = 'yellow')
+        return(self.hist, self.fit_params, self.fit_paramerr)
+            
     
     def SFMS_ridge(self, linefit='double', **kwarg):
         """Identify the 'ridge' of data for the star-forming main sequence
