@@ -8,8 +8,8 @@ Apache License, Version 2.0
 import numpy as np
 import matplotlib.pyplot as plt
 import math
-import fitting.fit_funcs as fit
-import formatting.density_contours as dc
+import src.ScaleRPy.fitting.fit_funcs as fit
+import src.ScaleRPy.formatting.density_contours as dc
 """
 Functions to add:
     rem_low : remove low s_mass from the sample
@@ -135,9 +135,18 @@ class SpatGalDat:
         """Return a list of the parameter names"""
         return list(self.parameters.keys())
     
-    def ridge(self, xparam, yparam, xlabel='', ylabel='', linefit='double', returnall=False, **kwarg):
+    def ridge(self, xparam, yparam, xlabel='', ylabel='', linefit='double', returnall=False, contouring=False, contour_colors='k', **kwarg):
         """Identify the 'ridge' of data for any two spatially-resolved parameters
-            Keyword arguments passed to find_ridge"""
+        xparam: string, the name of the x-axis parameter
+        yparam: string, the name of the y-axis parameter
+        xlabel: string, the label for the x-axis
+        ylabel: string, the label for the y-axis
+        linefit: string, the type of line fit to perform, 'double' or 'single'
+        returnall: boolean, whether to return all results or not
+        contouring: boolean, whether to plot density contours or not. 
+                    Note that contouring=True will signifnicantly increase computation time for large datasets
+        kwarg: keyword arguments passed to find_ridge
+        """
         hist, ridgept, histval, xedges, yedges = fit.find_ridge(
             self.parameters[xparam], self.parameters[yparam], xlabel=xlabel, ylabel=ylabel, **kwarg)
         
@@ -149,8 +158,10 @@ class SpatGalDat:
             yfit = fit.line(ridgept[0, :], *fit_params)
 
         fitax = hist[1]
-        print('contouring')
-        dc.density_contour(self.parameters[xparam], self.parameters[yparam], fitax, zorder=2)
+
+        whfinite = np.nonzero((np.isfinite(self.parameters[xparam])) & (np.isfinite(self.parameters[yparam])))
+        #draw density_contours, remove any non-finite values
+        if contouring: dc.density_contour(self.parameters[xparam][whfinite], self.parameters[yparam][whfinite], fitax, zorder=3, colors=contour_color)
         fitax.plot(ridgept[0, :], yfit, color='yellow',zorder=4)
         
         if returnall:
