@@ -8,8 +8,9 @@ Apache License, Version 2.0
 import numpy as np
 import matplotlib.pyplot as plt
 import math
-import src.ScaleRPy.fitting.fit_funcs as fit
-import src.ScaleRPy.formatting.density_contours as dc
+import ScaleRPy.fitting.fit_funcs as fit
+import ScaleRPy.formatting.density_contours as dc
+import ScaleRPy.formatting.tol_colors as tol
 """
 Functions to add:
     rem_low : remove low s_mass from the sample
@@ -135,7 +136,7 @@ class SpatGalDat:
         """Return a list of the parameter names"""
         return list(self.parameters.keys())
     
-    def ridge(self, xparam, yparam, xlabel='', ylabel='', linefit='double', returnall=False, contouring=False, contour_colors='k', **kwarg):
+    def ridge(self, xparam, yparam, xlabel='', ylabel='', linefit='double', returnall=False, contouring=False, contour_color=tol.tol_cset('bright')[6], ridgeptcol = tol.tol_cset('light')[2], ridgelinecol = tol.tol_cset('light')[-1], **kwarg):
         """Identify the 'ridge' of data for any two spatially-resolved parameters
         xparam: string, the name of the x-axis parameter
         yparam: string, the name of the y-axis parameter
@@ -148,7 +149,7 @@ class SpatGalDat:
         kwarg: keyword arguments passed to find_ridge
         """
         hist, ridgept, histval, xedges, yedges = fit.find_ridge(
-            self.parameters[xparam], self.parameters[yparam], xlabel=xlabel, ylabel=ylabel, **kwarg)
+            self.parameters[xparam], self.parameters[yparam], xlabel=xlabel, ylabel=ylabel, ridgeptcol=ridgeptcol, **kwarg)
         
         if linefit == 'double':
             fit_params, fit_paramerr = fit.fit_double(ridgept)
@@ -162,7 +163,7 @@ class SpatGalDat:
         whfinite = np.nonzero((np.isfinite(self.parameters[xparam])) & (np.isfinite(self.parameters[yparam])))
         #draw density_contours, remove any non-finite values
         if contouring: dc.density_contour(self.parameters[xparam][whfinite], self.parameters[yparam][whfinite], fitax, zorder=3, colors=contour_color)
-        fitax.plot(ridgept[0, :], yfit, color='yellow',zorder=4)
+        fitax.plot(ridgept[0, :], yfit, color=ridgelinecol, zorder=3)
         
         if returnall:
             return hist, ridgept, histval, xedges, yedges, fit_params, fit_paramerr

@@ -12,9 +12,10 @@ from scipy.optimize import curve_fit
 import numpy.ma as ma
 import math
 from scipy.stats import gaussian_kde
+from ScaleRPy.formatting.tol_colors import tol_cmap
 
 
-def find_ridge(x, y, xrange = None, yrange = None, numxbins=40, numybins=40, fittype='kde', xlabel='', ylabel='',fontsize=12, kde_bwmode='scott', kde_error='bw_approx'):
+def find_ridge(x, y, xrange = None, yrange = None, numxbins=40, numybins=40, fittype='kde', xlabel='', ylabel='',fontsize=12, kde_bwmode='scott', kde_error='bw_approx', cmap=tol_cmap('iridescent'), ridgeptcol = 'm'):
     """
     This function creates a ridge line fit by constructing a 2D histogram of the x and y data, 
     identifying the "ridge" of the data (the value of y where the most spaxels are in a given column of x), 
@@ -35,6 +36,8 @@ def find_ridge(x, y, xrange = None, yrange = None, numxbins=40, numybins=40, fit
     fontsize (int) : the fontsize for the labels
     kde_bwmode (str) : the bandwidth method for the KDE, see scipy.stats.gaussian_kde for options
     kde_error (str) : the method for estimating the error on the mode from the KDE, options are 'bw_approx' and 'half_max'
+    cmap (matplotlib colormap) : the colormap to use for the 2D histogram
+    ridgeptcol (str) : the color of the ridge points on the plot
 
     Assumes spaxel sample has already been reasonably cleaned to remove spaxels with e.g., low mass surface density (<10^6 M_sun/kpc^2)
     """
@@ -47,7 +50,8 @@ def find_ridge(x, y, xrange = None, yrange = None, numxbins=40, numybins=40, fit
     xbin=np.linspace(xrange[0], xrange[1], num = numxbins)
     ybin=np.linspace(yrange[0], yrange[1], num= numybins)
 
-    cmap=plt.cm.YlGnBu
+    #cmap=plt.cm.YlGnBu
+
     norm = colors.LogNorm()
     #construct 2D histogram from data
     hist,xedges,yedges,image=ax.hist2d(x,y,bins=(xbin,ybin),
@@ -94,7 +98,7 @@ def find_ridge(x, y, xrange = None, yrange = None, numxbins=40, numybins=40, fit
     ax.set_xlabel(xlabel, fontsize=fontsize)
     ax.set_ylabel(ylabel,fontsize=fontsize)
 
-    ax.errorbar(fx, fy, yerr=fyerr, fmt='.', color='m', zorder=3)
+    ax.errorbar(fx, fy, yerr=fyerr, fmt='.', color=ridgeptcol, zorder=4)
     
     
     return((histfig, ax), ridge, hist, xedges, yedges)
