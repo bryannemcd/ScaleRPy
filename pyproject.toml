@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools"]
+requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -9,6 +9,7 @@ authors = [
     { name = "Bryanne McDonough", email = "br.mcdonough@northeastern.edu" }
 ]
 readme = "README.md"
+version = "1.1.0"
 license = { file = "LICENSE" }
 requires-python = ">=3.8"
 classifiers = [
@@ -19,10 +20,9 @@ dependencies = [
     "matplotlib",
     "scipy"
 ]
-dynamic = ["version"]
+
 
 [project.urls]
 
 repository = "https://github.com/bryannemcd/ScaleRPy"
 
-[tool.setuptools.dynamic]

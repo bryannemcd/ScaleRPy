@@ -43,7 +43,7 @@ These limitations being noted, this package is being offered to the community fo
   - fit_double(ridgepts) and fit_single(ridgepts) fit, respectively, a discontinuous double linear function and a single linear function to ridge points.
 
 ## Installation
-Instructions on how to install the project and its dependencies.
+This software can be installed via pip, or the modules can be accessed directly from the src/ScaleRPy folder.
 
 ## Examples
 Examples of use can be found in scalerfit_example.ipynb (in development).
