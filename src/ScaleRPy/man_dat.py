@@ -60,7 +60,7 @@ class GalDat:
         """Return the label for the parameter name"""
         return self.labels.get(name, "")
 
-    def compute_relationship(self, param1, param2, linefit='double', **kwarg):
+    def compute_relationship(self, param1, param2, linefit='double', makeplot=True, **kwarg):
         """Compute the relationship between two parameters
         param1: string, the name of the first parameter
         param2: string, the name of the second parameter
@@ -71,16 +71,21 @@ class GalDat:
         ylab = self.labels[param2]
         x = self.parameters[param1]
         y = self.parameters[param2]
-        hist, ridgept, histvals, xedges, yedges = fit.find_ridge(x, y, xlabel=xlab, ylabel=ylab, **kwarg)
-        fitax = hist[1]
+        if makeplot: hist, ridgept, histvals, xedges, yedges = fit.find_ridge(x, y, xlabel=xlab, ylabel=ylab, makeplot=makeplot, **kwarg)
+        else: ridgept = fit.find_ridge(x, y, xlabel=xlab, ylabel=ylab, makeplot=makeplot, **kwarg)
+        
         if linefit=='double':
+            
             params, paramerr = fit.fit_double(ridgept)
             yfit = fit.doubline(ridgept[0,:], *params)
         elif linefit == 'single':   
             params, paramerr = fit.fit_single(ridgept)
             yfit = fit.line(ridgept[0,:], *params)
-        fitax.plot(ridgept[0,:], yfit, color = 'yellow')
-        return hist, params, paramerr
+        if makeplot:
+            fitax = hist[1]
+            fitax.plot(ridgept[0,:], yfit, color = 'yellow')
+            return hist, params, paramerr
+        else: return ridgept, params, paramerr
 
 
 class SpatGalDat:
@@ -136,7 +141,7 @@ class SpatGalDat:
         """Return a list of the parameter names"""
         return list(self.parameters.keys())
     
-    def ridge(self, xparam, yparam, xlabel='', ylabel='', linefit='double', returnall=False, contouring=False, contour_color=tol.tol_cset('bright')[6], ridgeptcol = tol.tol_cset('light')[2], ridgelinecol = tol.tol_cset('light')[-1], **kwarg):
+    def ridge(self, xparam, yparam, xlabel='', ylabel='', linefit='double', returnall=False, contouring=False, contour_color=tol.tol_cset('bright')[6], ridgeptcol = tol.tol_cset('light')[2], ridgelinecol = tol.tol_cset('light')[-1],makeplot=True, **kwarg):
         """Identify the 'ridge' of data for any two spatially-resolved parameters
         xparam: string, the name of the x-axis parameter
         yparam: string, the name of the y-axis parameter
@@ -148,9 +153,12 @@ class SpatGalDat:
                     Note that contouring=True will signifnicantly increase computation time for large datasets
         kwarg: keyword arguments passed to find_ridge
         """
-        hist, ridgept, histval, xedges, yedges = fit.find_ridge(
-            self.parameters[xparam], self.parameters[yparam], xlabel=xlabel, ylabel=ylabel, ridgeptcol=ridgeptcol, **kwarg)
-        
+        if makeplot:
+            hist, ridgept, histval, xedges, yedges = fit.find_ridge(
+                self.parameters[xparam], self.parameters[yparam], xlabel=xlabel, ylabel=ylabel, ridgeptcol=ridgeptcol, makeplot=makeplot, **kwarg)
+        else: 
+            ridgept = fit.find_ridge(
+                self.parameters[xparam], self.parameters[yparam], xlabel=xlabel, ylabel=ylabel, ridgeptcol=ridgeptcol, makeplot=makeplot, **kwarg)
         if linefit == 'double':
             fit_params, fit_paramerr = fit.fit_double(ridgept)
             yfit = fit.doubline(ridgept[0, :], *fit_params)
@@ -158,6 +166,8 @@ class SpatGalDat:
             fit_params, fit_paramerr = fit.fit_single(ridgept)
             yfit = fit.line(ridgept[0, :], *fit_params)
 
+        if not makeplot:
+            return(ridgept, fit_params, fit_paramerr)
         fitax = hist[1]
 
         whfinite = np.nonzero((np.isfinite(self.parameters[xparam])) & (np.isfinite(self.parameters[yparam])))

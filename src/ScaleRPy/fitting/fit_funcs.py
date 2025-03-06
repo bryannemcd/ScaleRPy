@@ -15,7 +15,7 @@ from scipy.stats import gaussian_kde
 from ScaleRPy.formatting.tol_colors import tol_cmap
 
 
-def find_ridge(x, y, xrange = None, yrange = None, numxbins=40, numybins=40, fittype='kde', xlabel='', ylabel='',fontsize=12, kde_bwmode='scott', kde_error='bw_approx', cmap=tol_cmap('iridescent'), ridgeptcol = 'm'):
+def find_ridge(x, y, xrange=None, yrange=None, numxbins=40, numybins=40, fittype='kde', makeplot=False, xlabel='', ylabel='', fontsize=12, kde_bwmode='scott', kde_error='bw_approx', cmap=tol_cmap('iridescent'), ridgeptcol='m'):
     """
     This function creates a ridge line fit by constructing a 2D histogram of the x and y data, 
     identifying the "ridge" of the data (the value of y where the most spaxels are in a given column of x), 
@@ -24,7 +24,7 @@ def find_ridge(x, y, xrange = None, yrange = None, numxbins=40, numybins=40, fit
     x: a 1D array of length N containing the x values for the spatially resolved relationship (e.g., stellar mass surface density for N spaxels)
     y: a 1D array of length N the y values for the spatially resolved relationship (e.g., SFR surface density for N spaxels)
     xrange: the range in x that the scaling relation fit should be performed over; should exclude outlying data
-    yrange: the range in y that the scaling relation fit shoudl be performed over; should exclude outlying data
+    yrange: the range in y that the scaling relation fit should be performed over; should exclude outlying data
     numxbins: the number of bins the x data will be divided into. Smaller bins are recommended for smaller data samples
     numybins: the number of bins the y data will be divided into
     fittype: the type of ridgeline fit to perform, the options are currently 'max' or 'kde' 
@@ -42,66 +42,62 @@ def find_ridge(x, y, xrange = None, yrange = None, numxbins=40, numybins=40, fit
     Assumes spaxel sample has already been reasonably cleaned to remove spaxels with e.g., low mass surface density (<10^6 M_sun/kpc^2)
     """
 
-    if xrange is None: xrange=(min(x), max(x))
-    if yrange is None: yrange=(min(y), max(y))
+    if xrange is None: xrange = (min(x), max(x))
+    if yrange is None: yrange = (min(y), max(y))
 
-    histfig,ax=plt.subplots()
+    if makeplot:
+        histfig, ax = plt.subplots()
 
-    xbin=np.linspace(xrange[0], xrange[1], num = numxbins)
-    ybin=np.linspace(yrange[0], yrange[1], num= numybins)
-
-    #cmap=plt.cm.YlGnBu
+    xbin = np.linspace(xrange[0], xrange[1], num=numxbins)
+    ybin = np.linspace(yrange[0], yrange[1], num=numybins)
 
     norm = colors.LogNorm()
-    #construct 2D histogram from data
-    hist,xedges,yedges,image=ax.hist2d(x,y,bins=(xbin,ybin),
-        norm=norm,cmin=1,cmap=cmap, zorder=1) #cmin=1 to exclude any bins with no data
-    
-    cbar = histfig.colorbar(cm.ScalarMappable(norm=norm, cmap=cmap), ax=ax)
-    cbar.set_label(r'$\mathrm{N}$', rotation=90,fontsize=fontsize)
-    
-    #mask any points without data
-    mask=np.isinf(hist)
-    goodhist=ma.masked_array(hist, mask=mask)
-    
-    #arrays to store the x and y values that will be fit to    
-    fx=np.empty(len(hist[:,0])) # the middle value of each x bin
-    fy=np.empty(len(hist[:,0])) # the middle value of the y bin that contains the most amount of spaxels in a given x bin
-    fyerr=np.empty(len(hist[:,0])) # stores the error in fy if fittype='Gauss'
-    
-    #find the (x,y) points where histogram is peaked (ridge points)
-    for i in range(0,len(xedges)-1):
-        col=goodhist[i,:]
-        fx[i]=(xedges[i]+xedges[i+1])/2.
-        #good=np.isfinite(col)
-        if fittype == 'max': 
-            hmax=np.nanargmax(col)
-            fy[i]=(yedges[hmax]+yedges[hmax+1])/2.
-            fyerr=None
+    # construct 2D histogram from data
+    hist, xedges, yedges = np.histogram2d(x, y, bins=(xbin, ybin))
+
+    if makeplot:
+        hist, xedges, yedges, image = ax.hist2d(x, y, bins=(xbin, ybin), norm=norm, cmin=1, cmap=cmap, zorder=1)  # cmin=1 to exclude any bins with no data
+        cbar = histfig.colorbar(cm.ScalarMappable(norm=norm, cmap=cmap), ax=ax)
+        cbar.set_label(r'$\mathrm{N}$', rotation=90, fontsize=fontsize)
+
+    # mask any points without data
+    mask = np.isinf(hist)
+    goodhist = ma.masked_array(hist, mask=mask)
+
+    # arrays to store the x and y values that will be fit to    
+    fx = np.empty(len(hist[:, 0]))  # the middle value of each x bin
+    fy = np.empty(len(hist[:, 0]))  # the middle value of the y bin that contains the most amount of spaxels in a given x bin
+    fyerr = np.empty(len(hist[:, 0]))  # stores the error in fy if fittype='Gauss'
+
+    # find the (x,y) points where histogram is peaked (ridge points)
+    for i in range(0, len(xedges) - 1):
+        col = goodhist[i, :]
+        fx[i] = (xedges[i] + xedges[i + 1]) / 2.
+        if fittype == 'max':
+            hmax = np.nanargmax(col)
+            fy[i] = (yedges[hmax] + yedges[hmax + 1]) / 2.
+            fyerr = None
         elif fittype == 'kde':
-            whx = np.nonzero((x>xedges[i]) & (x<=xedges[i+1])& (np.isfinite(y)))
-            #require at least 5 points to fit KDE
+            whx = np.nonzero((x > xedges[i]) & (x <= xedges[i + 1]) & (np.isfinite(y)))
+            # require at least 5 points to fit KDE
             if len(whx[0]) < 5:
                 fy[i] = np.nan
-                fyerr[i] = np.nan 
+                fyerr[i] = np.nan
                 continue
-            fy[i], fyerr[i] = kde_mode(y[whx], bandwidth = kde_bwmode, error_mode = kde_error)
-            
+            fy[i], fyerr[i] = kde_mode(y[whx], bandwidth=kde_bwmode, error_mode=kde_error)
         else:
-            print(fittype + 'is not a recognized input for fittype, please check inputs and try again')
-            return()
-        
-        
-    ridge = np.asarray([fx,fy,fyerr])
+            print(fittype + ' is not a recognized input for fittype, please check inputs and try again')
+            return
 
+    ridge = np.asarray([fx, fy, fyerr])
 
-    ax.set_xlabel(xlabel, fontsize=fontsize)
-    ax.set_ylabel(ylabel,fontsize=fontsize)
-
-    ax.errorbar(fx, fy, yerr=fyerr, fmt='.', color=ridgeptcol, zorder=4)
-    
-    
-    return((histfig, ax), ridge, hist, xedges, yedges)
+    if makeplot:
+        ax.set_xlabel(xlabel, fontsize=fontsize)
+        ax.set_ylabel(ylabel, fontsize=fontsize)
+        ax.errorbar(fx, fy, yerr=fyerr, fmt='.', color=ridgeptcol, zorder=4)
+        return (histfig, ax), ridge, hist, xedges, yedges
+    else:
+        return ridge
 
 def fit_double(ridge):
     """ 
