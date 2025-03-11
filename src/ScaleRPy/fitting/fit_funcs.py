@@ -58,7 +58,7 @@ def find_ridge(x, y, xrange=None, yrange=None, numxbins=40, numybins=40, fittype
     if makeplot:
         hist, xedges, yedges, image = ax.hist2d(x, y, bins=(xbin, ybin), norm=norm, cmin=1, cmap=cmap, zorder=1)  # cmin=1 to exclude any bins with no data
         cbar = histfig.colorbar(cm.ScalarMappable(norm=norm, cmap=cmap), ax=ax)
-        cbar.set_label(r'$\mathrm{N}$', rotation=90, fontsize=fontsize)
+        cbar.set_label(r'$\mathrm{N_{samples}}$', rotation=90, fontsize=fontsize)
 
     # mask any points without data
     mask = np.isinf(hist)
