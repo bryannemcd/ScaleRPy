@@ -60,7 +60,7 @@ class GalDat:
         """Return the label for the parameter name"""
         return self.labels.get(name, "")
 
-    def compute_relationship(self, param1, param2, linefit='double', makeplot=True, **kwarg):
+    def compute_relationship(self, param1, param2, linefit='double', makeplot=True, curve_fit_method='trf', **kwarg):
         """Compute the relationship between two parameters
         param1: string, the name of the first parameter
         param2: string, the name of the second parameter
@@ -76,10 +76,10 @@ class GalDat:
         
         if linefit=='double':
             
-            params, paramerr = fit.fit_double(ridgept)
+            params, paramerr = fit.fit_double(ridgept, curve_fit_method=curve_fit_method)
             yfit = fit.doubline(ridgept[0,:], *params)
         elif linefit == 'single':   
-            params, paramerr = fit.fit_single(ridgept)
+            params, paramerr = fit.fit_single(ridgept, curve_fit_method=curve_fit_method)
             yfit = fit.line(ridgept[0,:], *params)
         if makeplot:
             fitax = hist[1]
@@ -141,7 +141,7 @@ class SpatGalDat:
         """Return a list of the parameter names"""
         return list(self.parameters.keys())
     
-    def ridge(self, xparam, yparam, xlabel='', ylabel='', linefit='double', returnall=False, contouring=False, contour_color=tol.tol_cset('bright')[6], ridgeptcol = tol.tol_cset('light')[2], ridgelinecol = tol.tol_cset('light')[-1],makeplot=True, **kwarg):
+    def ridge(self, xparam, yparam, xlabel='', ylabel='', linefit='double', returnall=False, contouring=False, contour_color=tol.tol_cset('bright')[6], ridgeptcol = tol.tol_cset('light')[2], ridgelinecol = tol.tol_cset('light')[-1],makeplot=True,curve_fit_method='trf', **kwarg):
         """Identify the 'ridge' of data for any two spatially-resolved parameters
         xparam: string, the name of the x-axis parameter
         yparam: string, the name of the y-axis parameter
@@ -160,10 +160,10 @@ class SpatGalDat:
             ridgept = fit.find_ridge(
                 self.parameters[xparam], self.parameters[yparam], xlabel=xlabel, ylabel=ylabel, ridgeptcol=ridgeptcol, makeplot=makeplot, **kwarg)
         if linefit == 'double':
-            fit_params, fit_paramerr = fit.fit_double(ridgept)
+            fit_params, fit_paramerr = fit.fit_double(ridgept, curve_fit_method=curve_fit_method)
             yfit = fit.doubline(ridgept[0, :], *fit_params)
         elif linefit == 'single':
-            fit_params, fit_paramerr = fit.fit_single(ridgept)
+            fit_params, fit_paramerr = fit.fit_single(ridgept, curve_fit_method=curve_fit_method)
             yfit = fit.line(ridgept[0, :], *fit_params)
 
         if not makeplot:

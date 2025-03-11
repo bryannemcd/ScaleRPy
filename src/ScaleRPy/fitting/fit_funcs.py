@@ -99,7 +99,7 @@ def find_ridge(x, y, xrange=None, yrange=None, numxbins=40, numybins=40, fittype
     else:
         return ridge
 
-def fit_double(ridge):
+def fit_double(ridge, curve_fit_method = 'trf'):
     """ 
     Fit a double linear to the ridge points
 
@@ -111,18 +111,18 @@ def fit_double(ridge):
     fyerr = ridge[2,:]
     #set bounds such that x0 is within xrange
     bounds = ((-1*np.inf, -1*np.inf, -1*np.inf, min(fx)), (np.inf, np.inf, np.inf, max(fx)))
-    popt, pcov = curve_fit(doubline, fx, fy, sigma=fyerr, nan_policy='omit', bounds=bounds)
+    popt, pcov = curve_fit(doubline, fx, fy, sigma=fyerr, nan_policy='omit', bounds=bounds, method = curve_fit_method)
     # obtain errors from the covariant matrix
     perr = np.sqrt(np.diag(pcov))
     return(popt,perr)
 
-def fit_single(ridge):
+def fit_single(ridge, curve_fit_method = 'trf'):
     #set bounds such that x0 is within xrange
     fx = ridge[0,:]
     fy = ridge[1,:]
     fyerr = ridge[2,:]
     bounds = ((-1*np.inf, -1*np.inf), (np.inf, np.inf))
-    popt, pcov = curve_fit(line, fx, fy, sigma=fyerr, nan_policy='omit', bounds=bounds)
+    popt, pcov = curve_fit(line, fx, fy, sigma=fyerr, nan_policy='omit', bounds=bounds, method = curve_fit_method)
     # obtain errors from the covariant matrix
     perr = np.sqrt(np.diag(pcov))
     return(popt,perr)
