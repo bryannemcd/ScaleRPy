@@ -164,7 +164,7 @@ def kde_mode(data, bandwidth = 'scott', error_mode ='bw_approx'):
 def bootstrap_mode_error(data, num_samples=1000):
     """
     Estimate the error on the mode using bootstrapping.
-    Will take a long time!
+    Will take a long time for large datasets!
 
     Parameters:
     data (array-like): Input data.
