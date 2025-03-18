@@ -4,7 +4,8 @@ A Python package for obtaining scaling relationships between two parameters usin
 Designed for use with global (i.e., integrated) and spatially-resolved astrophysical data. 
 This software is compatable with observed and simulated data, facilitating strong quantitative comparisons between studies.
 
-This project and README file are in development.
+[![DOI](https://zenodo.org/badge/902567737.svg)](https://doi.org/10.5281/zenodo.15047561)
+
 
 ## Table of Contents
 
@@ -68,4 +69,4 @@ Renzini, Alvio, and Ying-jie Peng. “AN OBJECTIVE DEFINITION FOR THE MAIN SEQUE
 
 
 ## Acknowledgements
-This software benefits greatly from SciPy (for the kernel density estimates and ridge fitting functions).
+This software benefits greatly from SciPy (for the kernel density estimates and ridge fitting functions) and numpy.
