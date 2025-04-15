@@ -116,7 +116,7 @@ class SpatGalDat:
         
         self.s_mass_unit = r'$M_\odot \mathrm{kpc}^{-2}$'
         self.sfr_unit = r'$M_\odot \mathrm{yr}^{-1} \mathrm{kpc}^{-2}$'
-        self.gas_unit = r'$M_{\mathrm{gas}} \mathrm{kpc}^{-2}$'
+        self.gas_unit = r'$M_{\odot} \mathrm{kpc}^{-2}$'
         
         #for generalization
         self.parameters = {'stellar_mass': self.s_mass, 'sfr': self.sfr, 'gas_mass': self.g_mass}
