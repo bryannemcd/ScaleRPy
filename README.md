@@ -50,7 +50,7 @@ This software can be installed via pip, or the modules can be accessed directly 
 Examples of use can be found in scalerfit_example.ipynb (in development).
 
 ## Contributing
-Contributions are very welcome! Please submit pull requests or open an issue if you have any suggestions or improvements.
+Contributions are very welcome! Please submit pull requests or open an issue if you have any suggestions or improvements. Please feel free to get in contact if you want to make more substantial contributions!
 
 ## License
 Copyright 2025 Bryanne McDonough
@@ -59,7 +59,7 @@ This software is licensed under the Apache 2.0 License. See the LICENSE file for
 
 ## Citation
 
-The methodology and motivation behind this software is to be introduced in "Measuring the Resolved Star Formation Main Sequence in TNG100: Fitting Technique Matters" by McDonough, Curtis, and Brainerd (in prep). We plan to publish a preprint on ArXiv early February 2025. If you use this software or the ridge line technique as implemented in this software for your research, we request citation to that work.
+The methodology and motivation behind this software is to be introduced in "Measuring Scaling Relations: Fitting Technique Matters" by McDonough, Curtis, and Brainerd (2025). This article has been accepted by ApJ and is currently hosted on ArXiv [DOI LINK:](https://doi.org/10.48550/arXiv.2503.15702). If you use this software or the ridge line technique as implemented in this software for your research, we request citation to that work.
 
 Depending on the relevency to your work, you may also want to cite the original paper that introduced ridge line technique for measuring scaling relationships: "An Objective Definition for the Main Sequence of Star-forming Galaxies" by Renzini & Peng (2015). [ADS link](https://ui.adsabs.harvard.edu/abs/2015ApJ...801L..29R/abstract). DOIs: (ApJL) 10.1088/2041-8205/801/2/L29   (ArXiv) 10.48550/arXiv.1502.01027. 
 
